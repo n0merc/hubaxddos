@@ -13,7 +13,7 @@
 
 ## Installation
 ```bash
-git clone https://github.com/yourusername/hubaxddos.git
+git clone https://github.com/anujin696969/hubaxddos.git
 cd hubaxddos
 # No installation required - pure Python
 ```
