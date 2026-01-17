@@ -1,42 +1,83 @@
-# -hubax-ddos-tool
-# Install dependencies
-pip3 install requests
+# HUBaxDDOS - Advanced Network Stress Testing Tool
 
-# Run the tool (needs root for SYN flood)
-sudo python3 hubax_ddos.py <target_ip> <port> <threads> <duration>
+##  DISCLAIMER
+**This tool is for EDUCATIONAL PURPOSES ONLY. Use only on systems you own or have explicit permission to test. Unauthorized use is illegal and can result in severe penalties.**
 
-# Example:
-sudo python3 hubax_ddos.py 192.168.1.100 80 1000 300
-```
-
-## GitHub README Template:
-
-```markdown
-# HUBAX DDoS Tool
-
-**Disclaimer: This tool is for educational purposes and authorized penetration testing only. Unauthorized use is illegal.**
-
-## Features
-- Multi-vector DDoS attacks
-- HTTP/S flood
-- SYN flood (requires root)
-- UDP flood
-- Slowloris attack
-- IP spoofing
-- Configurable threads and duration
+##  Features
+- Multiple attack vectors (TCP, UDP, HTTP, SYN, ICMP, Slowloris, DNS)
+- Multi-threaded architecture
+- Real-time statistics
+- Interactive menu system
+- Professional logging
+- Easy to use interface
 
 ## Installation
 ```bash
-git clone https://github.com/yourusername/hubax-ddos-tool.git
-cd hubax-ddos-tool
-pip3 install -r requirements.txt
+git clone https://github.com/yourusername/hubaxddos.git
+cd hubaxddos
+# No installation required - pure Python
 ```
 
-## Usage
+##  Usage
+### Interactive Mode:
 ```bash
-python3 hubax_ddos.py <target_ip> [port] [threads] [duration]
+python3 hubaxddos.py -i
 ```
 
-## Legal Warning
-Only use on systems you own or have explicit permission to test.
+### Command Line:
+```bash
+# TCP Flood
+python3 hubaxddos.py -t 192.168.1.1 -p 80 -m tcp -th 500 -d 60
 
+# UDP Flood
+python3 hubaxddos.py -t 192.168.1.1 -p 53 -m udp -th 1000 -d 120
+
+# HTTP Flood
+python3 hubaxddos.py -t https://target.com -m http -th 300 -d 180
+```
+
+##  Menu Options
+```
+[1] TCP Flood Attack      - Standard TCP connection flood
+[2] UDP Flood Attack      - Connectionless UDP flood
+[3] HTTP Flood Attack     - Layer 7 HTTP request flood
+[4] SYN Flood Attack      - Half-open connection attack
+[5] ICMP Flood Attack     - Ping flood attack
+[6] Slowloris Attack      - Slow HTTP headers attack
+[7] DNS Amplification     - DNS reflection attack
+[8] Multi-Vector Attack   - Combine multiple methods
+[9] Show Statistics       - Display attack stats
+[10] Stop All Attacks     - Stop all running attacks
+[11] Help                 - Show help menu
+[12] Exit                 - Exit the program
+```
+
+##  Configuration
+Edit the constants at the top of `hubaxddos.py`:
+```python
+MAX_THREADS = 1000      # Maximum concurrent threads
+PACKET_SIZE = 4096      # Size of each packet
+TIMEOUT = 3             # Socket timeout in seconds
+ATTACK_DURATION = 300   # Default attack duration
+```
+
+##  Statistics
+The tool provides real-time statistics including:
+- Target information
+- Attack duration
+- Packets sent
+- Bytes transferred
+- Packets per second
+- Current status
+
+##  Legal Notice
+This software is provided "as is" without warranty of any kind. The author is not responsible for any misuse or damage caused by this program. Users assume full responsibility for their actions.
+
+##  Contributing
+Contributions are welcome! Please read the contributing guidelines before submitting pull requests.
+
+## 📄 License
+MIT License - See LICENSE file for details.
+
+## 💬 Support
+For questions or issues, please open an issue on GitHub.
