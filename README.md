@@ -40,5 +40,3 @@ python3 hubax_ddos.py <target_ip> [port] [threads] [duration]
 ## Legal Warning
 Only use on systems you own or have explicit permission to test.
 
-## License
-MIT License
