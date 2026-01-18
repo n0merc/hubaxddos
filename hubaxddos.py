@@ -25,7 +25,6 @@ class HUBaxDDOS_MAX:
         self.stats = {'packets_sent': 0, 'start_time': None, 'target': None}
         
     def show_logo(self):
-        # Хүссэн логог энд нэмлээ
         logo = """
 ██╗  ██╗██╗   ██╗██████╗  █████╗ ██╗  ██╗██████╗ ██████╗ ██████╗  ██████╗ ███████╗
 ██║  ██║██║   ██║██╔══██╗██╔══██╗╚██╗██╔╝██╔══██╗██╔══██╗██╔══██╗██╔═══██╗██╔════╝
@@ -33,13 +32,23 @@ class HUBaxDDOS_MAX:
 ██╔══██║██║   ██║██╔══██╗██╔══██║ ██╔██╗ ██║  ██║██║  ██║██║  ██║██║   ██║╚════██║
 ██║  ██║╚██████╔╝██████╔╝██║  ██║██╔╝ ██╗██████╔╝██████╔╝██████╔╝╚██████╔╝███████║
 ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚══════╝
-                               H U B A X  D D O S
-  
-                                                                           
+                               H U B A X  D D O S                                                                           
            [ MAXIMUM POWER NETWORK STRESS TEST TOOL - v2.0 ]
         """
         print(colored(logo, 'cyan', attrs=['bold']))
-        print(colored("       Author: n0merc | Target: Cloudflare & SSL Protected Sites", 'white'))
+        print(colored("        Author: n0merc | Target: Cloudflare & SSL Protected Sites", 'white'))
+        print(colored("-" * 75, 'cyan'))
+        
+        # Цэс (Menu) хэсгийг энд нэмлээ
+        menu = """
+    COMMANDS:
+    [https] - Start MAX HTTPS/SSL Flood (for websites)
+    [udp]   - Start MAX UDP Flood (for IP/Ports)
+    [stats] - Show current attack statistics
+    [stop]  - Terminate all active attacks
+    [exit]  - Close the program
+        """
+        print(colored(menu, 'yellow'))
         print(colored("-" * 75, 'cyan'))
 
     def update_stats(self, count):
@@ -122,6 +131,9 @@ class HUBaxDDOS_MAX:
             except KeyboardInterrupt: break
             except Exception as e: print(f"Error: {e}")
 
+if __name__ == "__main__":
+    HUBax_tool = HUBaxDDOS_MAX()
+    HUBax_tool.interactive_mode()
 if __name__ == "__main__":
     HUBax_tool = HUBaxDDOS_MAX()
     HUBax_tool.interactive_mode()
