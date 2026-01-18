@@ -40,8 +40,10 @@ To handle thousands of concurrent threads and avoid "Too many open files" errors
 
 Bash
 
-ulimit -n 100000
+ulimit -n 10000
 
+```
 
- ##Disclaimer
+##Disclaimer
+
 This tool is provided for educational purposes and authorized security testing only. Using this tool to attack infrastructure without prior mutual consent is illegal. The developer assumes no liability and is not responsible for any misuse or damage caused by this program.
